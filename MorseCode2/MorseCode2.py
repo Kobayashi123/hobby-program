@@ -6,7 +6,7 @@
 """
 
 __author__ = 'Kobayashi Shun'
-__version__ = '1.0.2'
+__version__ = '1.2.0'
 __date__ = '2022/08/02 (Created: 2022/07/25)'
 
 import MeCab as mecab
@@ -21,21 +21,9 @@ class MorseCode2:
         """
         インスタンスを生成します。
         """
-        self._string = text
+        self._original_string = text
         self._reading = ''
         self._morse = ''
-        self._morse_dictionary = {'ア': '--.--', 'イ': '.-', 'ウ': '..-', 'エ': '-.---', 'オ': '.-...',
-                                  'カ': '.-..', 'キ': '-.-..', 'ク': '...-', 'ケ': '-.--', 'コ': '----',
-                                  'サ': '-.-.-', 'シ': '--.-.', 'ス': '---.-', 'セ': '.---.', 'ソ': '---.',
-                                  'タ': '-.', 'チ': '..-.', 'ツ': '.--.', 'テ': '.-.--', 'ト': '..-..',
-                                  'ナ': '.-.', 'ニ': '-.-.', 'ヌ': '....', 'ネ': '--.-', 'ノ': '..--',
-                                  'ハ': '-...', 'ヒ': '--..-', 'フ': '--..', 'ヘ': '.', 'ホ': '-..',
-                                  'マ': '-..-', 'ミ': '..-.-', 'ム': '-', 'メ': '-...-', 'モ': '-..-.',
-                                  'ヤ': '.--', 'ユ': '-..--', 'ヨ': '--',
-                                  'ラ': '...', 'リ': '--.', 'ル': '-.--.', 'レ': '---', 'ロ': '.-.-',
-                                  'ワ': '-.-', 'ヲ': '.---', 'ン': '.-.-.',
-                                  'ー': '.--.-', '、': '.-.-.-', '゛': '..', '゜': '..--.'
-                                  }
 
     def get_reading(self) -> str:
         """
@@ -64,7 +52,7 @@ class MorseCode2:
         """
         m = mecab.Tagger()
 
-        result = m.parse(self._string).splitlines()  # mecabの解析結果の取得
+        result = m.parse(self._original_string).splitlines()  # mecabの解析結果の取得
         result = result[:-1]  # EOFの排除
 
         for vocabulary in result:
@@ -96,7 +84,7 @@ class MorseCode2:
 
     def shouon_transfer(self):
         """
-        小音を変換する
+        拗音を変換する
         """
         shouon_dictionary = {'ッ': 'ツ', 'ャ': 'ヤ', 'ュ': 'ユ', 'ョ': 'ヨ'}
         list_of_shouon = shouon_dictionary.keys()
@@ -110,9 +98,21 @@ class MorseCode2:
         """
         カタカナ文を受け取り、モールス信号変換して出力する。
         """
+        morse_dictionary = {'ア': '--.--', 'イ': '.-', 'ウ': '..-', 'エ': '-.---', 'オ': '.-...',
+                            'カ': '.-..', 'キ': '-.-..', 'ク': '...-', 'ケ': '-.--', 'コ': '----',
+                            'サ': '-.-.-', 'シ': '--.-.', 'ス': '---.-', 'セ': '.---.', 'ソ': '---.',
+                            'タ': '-.', 'チ': '..-.', 'ツ': '.--.', 'テ': '.-.--', 'ト': '..-..',
+                            'ナ': '.-.', 'ニ': '-.-.', 'ヌ': '....', 'ネ': '--.-', 'ノ': '..--',
+                            'ハ': '-...', 'ヒ': '--..-', 'フ': '--..', 'ヘ': '.', 'ホ': '-..',
+                            'マ': '-..-', 'ミ': '..-.-', 'ム': '-', 'メ': '-...-', 'モ': '-..-.',
+                            'ヤ': '.--', 'ユ': '-..--', 'ヨ': '--',
+                            'ラ': '...', 'リ': '--.', 'ル': '-.--.', 'レ': '---', 'ロ': '.-.-',
+                            'ワ': '-.-', 'ヲ': '.---', 'ン': '.-.-.',
+                            'ー': '.--.-', '、': '.-.-.-', '゛': '..', '゜': '..--.'
+                            }
         for char in self._reading:
             try:
-                self._morse += self._morse_dictionary[char] + "   "
+                self._morse += morse_dictionary[char] + "   "
             except KeyError:
                 print('\" ' + char + ' " is not in Morse Dictionary.')
 
@@ -123,13 +123,22 @@ def main():
     常に0を応答します。それが結果（リターンコード：終了ステータス）になることを想定しています。
     """
     print("モールス信号に変換する文を入力してください")
-    input_str = input(">")
-    morse = MorseCode2(input_str)
+    while True:
+        try:
+            input_str = input("> ")
+            if len(input_str) == 0:
+                break
+        except EOFError:
+            print()
+            break
 
-    morse.pronunciation()
-    print(morse.get_reading())
-    morse.string_to_morse()
-    print(morse.get_morse())
+        morse = MorseCode2(input_str)
+        morse.pronunciation()
+        morse.string_to_morse()
+        print(input_str)
+        print(morse.get_reading())
+        print(morse.get_morse())
+        print()
 
     return 0
 
