@@ -6,10 +6,11 @@
 """
 
 __author__ = 'Kobayashi Shun'
-__version__ = '1.2.0'
-__date__ = '2022/08/02 (Created: 2022/07/25)'
+__version__ = '1.3.0'
+__date__ = '2022/08/03 (Created: 2022/07/25)'
 
 import MeCab as mecab
+from PIL import Image
 
 
 class MorseCode2:
@@ -23,7 +24,7 @@ class MorseCode2:
         """
         self._original_string = text
         self._reading = ''
-        self._morse = ''
+        self._morse_message = ''
 
     def get_reading(self) -> str:
         """
@@ -41,7 +42,7 @@ class MorseCode2:
         Returns:
             _morse: モールス信号
         """
-        return self._morse
+        return self._morse_message
 
     def pronunciation(self):
         """
@@ -112,9 +113,41 @@ class MorseCode2:
                             }
         for char in self._reading:
             try:
-                self._morse += morse_dictionary[char] + "   "
+                self._morse_message += morse_dictionary[char] + " "
             except KeyError:
                 print('\" ' + char + ' " is not in Morse Dictionary.')
+
+    def generate_animation_code(self) -> str:
+        """
+        モールス信号のアニメーションコードを作成する
+
+        Returns:
+            signals: モールス信号のコード
+        """
+        # 「.は_3個+空白2個、-は_6個+空白 2個。単語間は空白6個」に変換
+        code_to_signal = {'.': '___' + '  ',
+                          '-': '_________' + '  ', ' ': '       '}  # 継続時間補正
+        is_signal_on = {'_': True, ' ': False}  # 時系列ON/OFF信号用
+
+        # 文字列をモールス符号文字列に変換し、"."と"_"の継続時間
+        time_codes = ''.join([code_to_signal[m] for m in self._morse_message])
+        signals = [is_signal_on[char] for char in time_codes]
+
+        return signals
+
+
+def generate_animation(signals):
+    """
+    モールス信号のアニメーションコードを元にアニメーションを作成し、gifファイルに保存する
+    """
+    # モールス符号の信号がONなら「白画像」、OFFなら「黒画像」にするためのテーブル
+    w = 600
+    h = 1200
+    image = {True: Image.new('RGB', (w, h), (255, 255, 255)),
+             False:  Image.new('RGB', (w, h), (0, 0, 0))}
+    images = [image[s] for s in signals]
+    images[0].save('message.gif', save_all=True,
+                   append_images=images[1:], optimize=True, duration=100, loop=10)
 
 
 def main():
@@ -123,10 +156,14 @@ def main():
     常に0を応答します。それが結果（リターンコード：終了ステータス）になることを想定しています。
     """
     print("モールス信号に変換する文を入力してください")
+    print("Ctrl&D または exit, quit を入力することで実行を終わります")
+    print()
+
+    animation_code_list = []
     while True:
         try:
-            input_str = input("> ")
-            if len(input_str) == 0:
+            input_str = input('> ')
+            if input_str in ('exit', 'quit'):
                 break
         except EOFError:
             print()
@@ -138,7 +175,11 @@ def main():
         print(input_str)
         print(morse.get_reading())
         print(morse.get_morse())
+        animation_code_list.append(morse.generate_animation_code())
         print()
+
+    for an_animation_code in animation_code_list:
+        generate_animation(an_animation_code)
 
     return 0
 
