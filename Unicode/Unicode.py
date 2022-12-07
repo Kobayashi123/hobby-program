@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
@@ -7,8 +6,8 @@ Unicode変換プログラム：文字列をUnicodeに変換して表示します
 """
 
 __author__ = 'Kobayashi Shun'
-__version__ = '0.0.0'
-__date__ = '2022/11/01 (Created: 2022/11/01)'
+__version__ = '1.0.0'
+__date__ = '2022/12/06 (Created: 2022/11/01)'
 
 def main():
     """
@@ -30,24 +29,62 @@ def main():
             print("終了します")
             break
 
-        unicode_line = input_str.encode('unicode-escape')
-        print("Unicode: " + str(unicode_line)[2:-1])
-        # print(type(byte_line))
+        unicode_line = encode_unicode(input_str)
+        print("Unicode: " + str(unicode_line)[2:-1].replace('\\\\u', ' '))
 
-        utf8_line = input_str.encode('utf-8')
-        print("UTF-8: " + str(utf8_line)[2:-1].replace('\\x', '%'))
-        # print(utf8_line.hex())
-        # print(type(utf8_line))
-
-        shift_jis_line = input_str.encode('shift-jis')
-        print("Shift-JIS: " + str(shift_jis_line)[2:-1].replace('\\x', '%'))
-        # print(type(shiftJIS_line))
-
-        str_line = unicode_line.decode('unicode-escape')
-        print("Unicode -> 文字列: " + str_line)
-        # print(type(str_line))
+        utf8_line = encode_utf8(input_str)
+        utf8_line = str(utf8_line)[2:-1].replace('\\x', '%')
+        print("UTF-8: " + utf8_line)
+        utf8_line = utf8_line.replace('%', ' ')
+        print("UTF-8 hex: " + utf8_line)
+        utf8_list = utf8_line.split(' ')[1:]
+        for i in range(len(utf8_list)):
+            utf8_list[i] = bin(int(utf8_list[i], 16))[2:]
+        print("UTF-8 bin: " + ' '.join(utf8_list))
 
     return 0
+
+def encode_unicode(input_str: str) -> bytes:
+    """
+    文字列をUnicodeに変換します。
+    """
+    unicode_line = input_str.encode('unicode-escape')
+    return unicode_line
+
+def encode_utf8(input_str: str) -> bytes:
+    """
+    文字列をUTF-8に変換します。
+    """
+    utf8_line = input_str.encode('utf-8')
+    return utf8_line
+
+def encode_shift_jis(input_str: str) -> bytes:
+    """
+    文字列をShift-JISに変換します。
+    """
+    shift_jis_line = input_str.encode('shift_jis')
+    return shift_jis_line
+
+def decode_unicode(input_str: bytes) -> str:
+    """
+    Unicodeを文字列に変換します。
+    """
+    str_line = input_str.decode('unicode-escape')
+    return str_line
+
+def decode_utf8(input_str: bytes) -> str:
+    """
+    UTF-8を文字列に変換します。
+    """
+    str_line = input_str.decode('utf-8')
+    return str_line
+
+def decode_shift_jis(input_str: bytes) -> str:
+    """
+    Shift-JISを文字列に変換します。
+    """
+    str_line = input_str.decode('shift_jis')
+    return str_line
 
 if __name__ == '__main__':  # ifによって、このスクリプトファイルが直接実行されたときだけ、以下の部分を実行する。
     import sys
